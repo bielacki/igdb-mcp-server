@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/bielacki-igdb-mcp-server-badge.png)](https://mseep.ai/app/bielacki-igdb-mcp-server)
+
 # IGDB MCP Server
 
 Access the IGDB (Internet Game Database) API through Model Context Protocol (MCP)

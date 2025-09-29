@@ -8,6 +8,7 @@ Access the IGDB (Internet Game Database) API through Model Context Protocol (MCP
 [![uv](https://img.shields.io/badge/uv-Package%20Manager-purple)](https://github.com/astral-sh/uv)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![IGDB API](https://img.shields.io/badge/IGDB-API%20v4-red)](https://api-docs.igdb.com)
+[![smithery badge](https://smithery.ai/badge/@bielacki/igdb-mcp-server)](https://smithery.ai/server/@bielacki/igdb-mcp-server)
 
 ## Overview
 
@@ -29,6 +30,14 @@ The IGDB MCP Server provides seamless access to the Internet Game Database (IGDB
 - **Type-Safe**: Built with Pydantic for robust data validation
 
 ## Quick Start
+
+### Installing via Smithery
+
+To install igdb-mcp-server automatically via [Smithery](https://smithery.ai/server/@bielacki/igdb-mcp-server):
+
+```bash
+npx -y @smithery/cli install @bielacki/igdb-mcp-server
+```
 
 ### Prerequisites
 - [uv](https://github.com/astral-sh/uv) installed

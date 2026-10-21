@@ -1,6 +1,6 @@
 [project]
 name = "igdb-mcp-server"
-version = "0.1.0"
+version = "2.0.0"
 description = "MCP server for accessing the IGDB (Internet Game Database) API"
 readme = "README.md"
 authors = [
@@ -10,7 +10,6 @@ requires-python = ">=3.12"
 dependencies = [
     "fastmcp>=2.11.3",
     "httpx>=0.28.1",
-    "smithery>=0.4.2",
 ]
 keywords = ["mcp", "igdb", "games", "gaming", "api", "model-context-protocol"]
 
@@ -21,9 +20,6 @@ igdb-mcp-server = "igdb_mcp_server.server:run_server"
 Homepage = "https://github.com/bielacki/igdb-mcp-server"
 Repository = "https://github.com/bielacki/igdb-mcp-server"
 Issues = "https://github.com/bielacki/igdb-mcp-server/issues" 
-
-[tool.smithery]
-server = "igdb_mcp_server.server:create_server"
 
 [build-system]
 requires = ["uv_build>=0.8.12,<0.9.0"]

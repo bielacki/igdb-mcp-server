@@ -8,21 +8,10 @@ information about games, platforms, companies, and more.
 import os
 import time
 import httpx
-from smithery.decorators import smithery
-from pydantic import Field, BaseModel
-from fastmcp import FastMCP, Context
+from pydantic import Field
+from fastmcp import FastMCP
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List, Annotated
-
-# Configuration schema for Smithery
-class Settings(BaseModel):
-    """Configuration for IGDB MCP Server."""
-    IGDB_CLIENT_ID: str = Field(
-        description="Your IGDB Client ID. Get it from https://dev.twitch.tv/console"
-    )
-    IGDB_CLIENT_SECRET: str = Field(
-        description="Your IGDB Client Secret. Get it from https://dev.twitch.tv/console"
-    )
 
 # Initialize the FastMCP server
 mcp = FastMCP(
@@ -51,12 +40,6 @@ mcp = FastMCP(
     • For time-based queries, use Unix timestamps for precise filtering
     """,
 )
-
-# Create a Smithery-compatible server function
-@smithery.server(config_schema=Settings)
-def create_server():
-    """Create and return the FastMCP server instance for Smithery."""
-    return mcp
 
 # Configuration
 IGDB_BASE_URL = "https://api.igdb.com/v4"
@@ -127,22 +110,18 @@ class IGDBClient:
         await self.http_client.aclose()
 
 
-def get_igdb_client(ctx: Optional[Context] = None) -> IGDBClient:
+def get_igdb_client() -> IGDBClient:
     """Get or create the IGDB client singleton."""
     global _igdb_client
 
     if "_igdb_client" not in globals():
-        # Get credentials from environment variables or Smithery settings
-        # Check if context has session_config (Smithery mode)
-        settings = getattr(ctx, 'session_config', None) if ctx else None
-
-        client_id = os.getenv("IGDB_CLIENT_ID") or (settings.IGDB_CLIENT_ID if settings else None)
-        client_secret = os.getenv("IGDB_CLIENT_SECRET") or (settings.IGDB_CLIENT_SECRET if settings else None)
+        # Get credentials from environment variables
+        client_id = os.getenv("IGDB_CLIENT_ID")
+        client_secret = os.getenv("IGDB_CLIENT_SECRET")
 
         if not client_id or not client_secret:
             raise ValueError(
-                "Please set IGDB_CLIENT_ID and IGDB_CLIENT_SECRET. "
-                "You can either set them as environment variables or configure them in Smithery. "
+                "Please set IGDB_CLIENT_ID and IGDB_CLIENT_SECRET environment variables. "
                 "You can obtain these from https://api-docs.igdb.com/#account-creation"
             )
 
@@ -158,7 +137,6 @@ def get_igdb_client(ctx: Optional[Context] = None) -> IGDBClient:
 )
 async def search_games(
     query: Annotated[str, Field(description="Search term for finding games")],
-    ctx: Context,
     fields: Annotated[
         str, Field(description="Comma-separated list of fields to return")
     ] = "name,rating,rating_count,first_release_date,platforms.name",
@@ -171,14 +149,13 @@ async def search_games(
 
     Args:
         query: Search term for finding games
-        ctx: Context for accessing session configuration
         fields: Comma-separated list of fields to return
         limit: Maximum number of results to return (default: 10, max: 500)
 
     Returns:
         List of games matching the search criteria
     """
-    igdb_client = get_igdb_client(ctx)
+    igdb_client = get_igdb_client()
 
     search_query = f'search "{query}"; fields {fields}; limit {limit};'
     return await igdb_client.make_request("games", search_query)
@@ -191,7 +168,6 @@ async def search_games(
 )
 async def get_game_details(
     game_id: Annotated[int, Field(description="The IGDB ID of the game")],
-    ctx: Context,
     fields: Annotated[
         Optional[str],
         Field(description="Comma-separated list of fields to return"),
@@ -202,13 +178,12 @@ async def get_game_details(
 
     Args:
         game_id: The IGDB ID of the game
-        ctx: Context for accessing session configuration
         fields: Comma-separated list of fields to return (default: all fields)
 
     Returns:
         Detailed information about the game
     """
-    igdb_client = get_igdb_client(ctx)
+    igdb_client = get_igdb_client()
 
     query = f"fields {fields}; where id = {game_id};"
     results = await igdb_client.make_request("games", query)
@@ -225,7 +200,6 @@ async def get_game_details(
     description="Fetch upcoming games sorted by hype count, filtered for future or TBA releases"
 )
 async def get_most_anticipated_games(
-    ctx: Context,
     fields: Annotated[
         str,
         Field(description="Comma-separated list of fields to return"),
@@ -242,7 +216,6 @@ async def get_most_anticipated_games(
     Automatically filters for future or TBA releases.
 
     Args:
-        ctx: Context for accessing session configuration
         fields: Comma-separated list of fields to return
         limit: Maximum number of results to return (default: 25, max: 500)
         min_hypes: Minimum number of hypes required (default: 25)
@@ -250,7 +223,7 @@ async def get_most_anticipated_games(
     Returns:
         List of most anticipated games sorted by hype count
     """
-    igdb_client = get_igdb_client(ctx)
+    igdb_client = get_igdb_client()
 
     # Get current timestamp
     current_timestamp = int(time.time())
@@ -281,7 +254,6 @@ async def custom_query(
         ),
     ],
     query: Annotated[str, Field(description="The Apicalypse query string")],
-    ctx: Context,
 ) -> List[Dict[str, Any]]:
     """
     Execute a custom IGDB API query.
@@ -292,7 +264,6 @@ async def custom_query(
     Args:
         endpoint: The API endpoint to query (e.g., "games", "companies", "platforms")
         query: The Apicalypse query string
-        ctx: Context for accessing session configuration
 
     Returns:
         Raw response from the IGDB API
@@ -301,7 +272,7 @@ async def custom_query(
         endpoint: "games"
         query: "fields name,rating; where rating > 90; sort rating desc; limit 5;"
     """
-    igdb_client = get_igdb_client(ctx)
+    igdb_client = get_igdb_client()
 
     return await igdb_client.make_request(endpoint, query)
 
